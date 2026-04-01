@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Keni Language Engine</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #14b8a6;
+      --accent-2: #fb923c;
+      --danger: #ef4444;
+      --ok: #22c55e;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
+      color: var(--text);
+    }
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    h1, h2, h3 { margin: 0 0 12px; }
+    p { color: var(--muted); }
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      background: rgba(20,184,166,0.15);
+      border: 1px solid rgba(20,184,166,0.35);
+      border-radius: 999px;
+      color: #99f6e4;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 20px;
+    }
+    .card {
+      background: rgba(17,24,39,0.9);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+    .card + .card { margin-top: 20px; }
+    label {
+      display: block;
+      font-size: 13px;
+      color: #cbd5e1;
+      margin: 12px 0 6px;
+    }
+    input, select, textarea, button {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #0b1220;
+      color: var(--text);
+      padding: 12px 14px;
+      font: inherit;
+    }
+    textarea { min-height: 90px; resize: vertical; }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .row-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    button {
+      background: linear-gradient(135deg, var(--accent), #0ea5e9);
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button.secondary {
+      background: #1e293b;
+      border: 1px solid var(--border);
+    }
+    button.warn { background: linear-gradient(135deg, var(--accent-2), #f97316); }
+    button.danger { background: linear-gradient(135deg, #dc2626, #ef4444); }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat {
+      background: rgba(15,23,42,0.9);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .stat .label { font-size: 12px; color: var(--muted); }
+    .stat .value { font-size: 28px; font-weight: 800; margin-top: 6px; }
+    .review-card {
+      min-height: 230px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .review-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: #cbd5e1;
+      font-size: 12px;
+      background: #0b1220;
+    }
+    .prompt {
+      font-size: 14px;
+      color: #e2e8f0;
+      background: rgba(15,23,42,0.8);
+      border: 1px dashed var(--border);
+      padding: 14px;
+      border-radius: 14px;
+    }
+    .big {
+      font-size: 34px;
+      font-weight: 800;
+      line-height: 1.15;
+    }
+    .sub {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .small-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 340px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+    .item {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(11,18,32,0.9);
+    }
+    .item-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: start;
+    }
+    .item-title {
+      font-weight: 700;
+      font-size: 16px;
+    }
+    .muted { color: var(--muted); font-size: 13px; }
+    .item-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .item-actions button { padding: 8px 10px; font-size: 13px; }
+    .stack { display: flex; flex-direction: column; gap: 20px; }
+    .footer-note { margin-top: 16px; font-size: 12px; color: var(--muted); }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .actions { grid-template-columns: 1fr 1fr; }
+      .row, .row-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div>
+        <div class="badge">Keni Language Engine · MVP v1</div>
+        <h1>Keni Language Engine</h1>
+        <p>Active recall, light spaced repetition, sentence prompts, and language-by-language tracking.</p>
+      </div>
+      <div style="min-width:260px; max-width:360px; width:100%;" class="card">
+        <h3>Today’s focus</h3>
+        <div id="todayFocus" class="prompt"></div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="label">Total cards</div><div class="value" id="totalCards">0</div></div>
+      <div class="stat"><div class="label">Due today</div><div class="value" id="dueToday">0</div></div>
+      <div class="stat"><div class="label">Languages</div><div class="value" id="languageCount">0</div></div>
+      <div class="stat"><div class="label">Hard cards</div><div class="value" id="hardCards">0</div></div>
+    </div>
+
+    <div class="grid">
+      <div class="stack">
+        <div class="card">
+          <h2>Add a word or phrase</h2>
+          <div class="row">
+            <div>
+              <label for="language">Language</label>
+              <select id="language">
+                <option>Spanish</option>
+                <option>German</option>
+                <option>Chinese</option>
+                <option>French</option>
+                <option>Arabic</option>
+                <option>Hebrew</option>
+                <option>Swahili</option>
+              </select>
+            </div>
+            <div>
+              <label for="type">Type</label>
+              <select id="type">
+                <option>Word</option>
+                <option>Phrase</option>
+                <option>Sentence</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label for="front">Prompt side</label>
+              <input id="front" placeholder="eat / desk / hello / I am studying" />
+            </div>
+            <div>
+              <label for="back">Answer side</label>
+              <input id="back" placeholder="comer / Schreibtisch / marhaba / estudio" />
+            </div>
+          </div>
+          <div class="row-3">
+            <div>
+              <label for="mnemonic">Mnemonic / image</label>
+              <input id="mnemonic" placeholder="Imagine a cart delivering a carta" />
+            </div>
+            <div>
+              <label for="sentence">Sentence</label>
+              <input id="sentence" placeholder="Yo como huevos." />
+            </div>
+            <div>
+              <label for="notes">Notes</label>
+              <input id="notes" placeholder="daily life verb / masculine noun" />
+            </div>
+          </div>
+          <label for="tags">Tags</label>
+          <input id="tags" placeholder="food, beginner, daily-life" />
+          <div style="margin-top:14px;" class="row">
+            <button id="addBtn">Add card</button>
+            <button id="sampleBtn" class="secondary">Load starter examples</button>
+          </div>
+          <div class="footer-note">Tip: prompt side can be English → answer side target language, or reverse once you’re stronger.</div>
+        </div>
+
+        <div class="card">
+          <h2>Your cards</h2>
+          <div class="row">
+            <div>
+              <label for="filterLanguage">Filter by language</label>
+              <select id="filterLanguage">
+                <option value="All">All</option>
+                <option>Spanish</option>
+                <option>German</option>
+                <option>Chinese</option>
+                <option>French</option>
+                <option>Arabic</option>
+                <option>Hebrew</option>
+                <option>Swahili</option>
+              </select>
+            </div>
+            <div>
+              <label for="search">Search</label>
+              <input id="search" placeholder="Search a word, tag, sentence..." />
+            </div>
+          </div>
+          <div id="cardList" class="small-list" style="margin-top:14px;"></div>
+        </div>
+      </div>
+
+      <div class="stack">
+        <div class="card review-card">
+          <div>
+            <div class="review-top">
+              <h2>Review mode</h2>
+              <span class="pill" id="reviewMeta">No card loaded</span>
+            </div>
+            <div class="sub" style="margin-bottom:12px;">Try to recall before revealing the answer.</div>
+            <div class="big" id="reviewFront">Click “Start review” to begin.</div>
+            <div id="reviewBack" class="prompt" style="display:none; margin-top:16px;"></div>
+          </div>
+          <div class="actions">
+            <button id="startReviewBtn">Start review</button>
+            <button id="showAnswerBtn" class="secondary">Show answer</button>
+            <button id="nextCardBtn" class="secondary">Next</button>
+            <button id="speakPromptBtn" class="warn">Prompt</button>
+          </div>
+          <div class="actions">
+            <button id="hardBtn" class="danger">Hard</button>
+            <button id="mediumBtn" class="secondary">Medium</button>
+            <button id="easyBtn">Easy</button>
+            <button id="resetBtn" class="secondary">Reset data</button>
+          </div>
+          <div id="speakPrompt" class="prompt" style="display:none;"></div>
+        </div>
+
+        <div class="card">
+          <h2>Language plan</h2>
+          <div id="languageSummary" class="small-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'keni-language-engine-v1';
+    const languageSchedule = {
+      Monday: 'Spanish',
+      Tuesday: 'German',
+      Wednesday: 'Spanish',
+      Thursday: 'Chinese',
+      Friday: 'French',
+      Saturday: 'Arabic',
+      Sunday: 'Hebrew + Swahili'
+    };
+
+    const starterCards = [
+      { language:'Spanish', type:'Word', front:'to eat', back:'comer', mnemonic:'Imagine COMBING your hair while eating dinner.', sentence:'Yo quiero comer ahora.', notes:'daily life verb', tags:['verb','daily-life'], difficulty:'new', interval:0, due:todayISO(), reviews:0 },
+      { language:'Spanish', type:'Word', front:'desk', back:'escritorio', mnemonic:'A writer scripts at a desk.', sentence:'El escritorio es blanco.', notes:'noun', tags:['home','beginner'], difficulty:'new', interval:0, due:todayISO(), reviews:0 },
+      { language:'German', type:'Word', front:'book', back:'das Buch', mnemonic:'A book saying “boo!”', sentence:'Das Buch ist interessant.', notes:'neuter noun', tags:['noun','study'], difficulty:'new', interval:0, due:todayISO(), reviews:0 },
+      { language:'French', type:'Phrase', front:'I am studying', back:'J’étudie', mnemonic:'A student named Judy studies.', sentence:'J’étudie le français.', notes:'simple present', tags:['study'], difficulty:'new', interval:0, due:todayISO(), reviews:0 },
+      { language:'Chinese', type:'Word', front:'door', back:'门 (mén)', mnemonic:'A MENacing door with a huge handle.', sentence:'门开了。', notes:'character + tone 2', tags:['object'], difficulty:'new', interval:0, due:todayISO(), reviews:0 },
+      { language:'Arabic', type:'Phrase', front:'hello', back:'مرحبا (marhaban)', mnemonic:'A friendly person says marhaba at the door.', sentence:'مرحبا، كيف حالك؟', notes:'greeting', tags:['greeting'], difficulty:'new', interval:0, due:todayISO(), reviews:0 },
+      { language:'Hebrew', type:'Word', front:'light', back:'אור (or)', mnemonic:'A glowing ORB of light.', sentence:'האור חזק.', notes:'noun', tags:['noun'], difficulty:'new', interval:0, due:todayISO(), reviews:0 },
+      { language:'Swahili', type:'Phrase', front:'How are you?', back:'Habari yako?', mnemonic:'You ask a yak about its day.', sentence:'Habari yako leo?', notes:'greeting', tags:['greeting'], difficulty:'new', interval:0, due:todayISO(), reviews:0 }
+    ];
+
+    let state = loadState();
+    let reviewQueue = [];
+    let currentReview = null;
+
+    function todayISO() {
+      return new Date().toISOString().slice(0,10);
+    }
+
+    function addDays(dateStr, days) {
+      const d = new Date(dateStr + 'T00:00:00');
+      d.setDate(d.getDate() + days);
+      return d.toISOString().slice(0,10);
+    }
+
+    function loadState() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return { cards: [] };
+      try { return JSON.parse(raw); } catch { return { cards: [] }; }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function uid() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+    }
+
+    function currentDayName() {
+      return new Date().toLocaleDateString('en-US', { weekday: 'long' });
+    }
+
+    function todayFocusText() {
+      const day = currentDayName();
+      const focus = languageSchedule[day];
+      return `<strong>${day}</strong>: ${focus}. Suggested to-do: 10 new words, active recall review, 5 spoken sentences, 1 sentence-building drill.`;
+    }
+
+    function addCard(card) {
+      state.cards.unshift({ id: uid(), createdAt: new Date().toISOString(), ...card });
+      saveState();
+      render();
+    }
+
+    function buildSpeakPrompt(card) {
+      const base = `Use "${card.back}" in 3 short spoken sentences.`;
+      const sentence = card.sentence ? ` Example sentence: ${card.sentence}` : '';
+      const notes = card.notes ? ` Focus note: ${card.notes}.` : '';
+      return base + sentence + notes;
+    }
+
+    function markReview(cardId, rating) {
+      const card = state.cards.find(c => c.id === cardId);
+      if (!card) return;
+      const currentInterval = card.interval || 0;
+      let nextInterval;
+      if (rating === 'hard') nextInterval = Math.max(1, currentInterval === 0 ? 1 : Math.ceil(currentInterval * 0.7));
+      if (rating === 'medium') nextInterval = currentInterval <= 1 ? 3 : Math.ceil(currentInterval * 1.8);
+      if (rating === 'easy') nextInterval = currentInterval <= 1 ? 5 : Math.ceil(currentInterval * 2.5);
+      card.interval = nextInterval;
+      card.difficulty = rating;
+      card.reviews = (card.reviews || 0) + 1;
+      card.lastReviewed = new Date().toISOString();
+      card.due = addDays(todayISO(), nextInterval);
+      saveState();
+      startReview(true);
+      render();
+    }
+
+    function getDueCards() {
+      const today = todayISO();
+      return state.cards.filter(c => !c.due || c.due <= today);
+    }
+
+    function startReview(forceRefresh = false) {
+      if (forceRefresh || reviewQueue.length === 0) {
+        reviewQueue = getDueCards().sort((a,b) => new Date(a.due||todayISO()) - new Date(b.due||todayISO()));
+      }
+      currentReview = reviewQueue.shift() || null;
+      renderReview();
+    }
+
+    function renderReview() {
+      const meta = document.getElementById('reviewMeta');
+      const front = document.getElementById('reviewFront');
+      const back = document.getElementById('reviewBack');
+      const prompt = document.getElementById('speakPrompt');
+      prompt.style.display = 'none';
+      prompt.textContent = '';
+
+      if (!currentReview) {
+        meta.textContent = 'All caught up';
+        front.textContent = 'No due cards right now. Add cards or review again tomorrow.';
+        back.style.display = 'none';
+        back.innerHTML = '';
+        return;
+      }
+
+      meta.textContent = `${currentReview.language} · ${currentReview.type} · due ${currentReview.due || todayISO()}`;
+      front.textContent = currentReview.front;
+      back.style.display = 'none';
+      back.innerHTML = `
+        <strong>Answer:</strong> ${escapeHtml(currentReview.back)}<br><br>
+        ${currentReview.mnemonic ? `<strong>Mnemonic:</strong> ${escapeHtml(currentReview.mnemonic)}<br>` : ''}
+        ${currentReview.sentence ? `<strong>Sentence:</strong> ${escapeHtml(currentReview.sentence)}<br>` : ''}
+        ${currentReview.notes ? `<strong>Notes:</strong> ${escapeHtml(currentReview.notes)}<br>` : ''}
+      `;
+    }
+
+    function escapeHtml(text='') {
+      return text
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function renderStats() {
+      const cards = state.cards;
+      document.getElementById('totalCards').textContent = cards.length;
+      document.getElementById('dueToday').textContent = getDueCards().length;
+      document.getElementById('languageCount').textContent = new Set(cards.map(c => c.language)).size;
+      document.getElementById('hardCards').textContent = cards.filter(c => c.difficulty === 'hard').length;
+      document.getElementById('todayFocus').innerHTML = todayFocusText();
+    }
+
+    function renderCardList() {
+      const filterLanguage = document.getElementById('filterLanguage').value;
+      const search = document.getElementById('search').value.trim().toLowerCase();
+      const list = document.getElementById('cardList');
+      const cards = state.cards.filter(c => {
+        const matchLanguage = filterLanguage === 'All' || c.language === filterLanguage;
+        const hay = `${c.front} ${c.back} ${c.mnemonic||''} ${c.sentence||''} ${c.notes||''} ${(c.tags||[]).join(' ')}`.toLowerCase();
+        return matchLanguage && (!search || hay.includes(search));
+      });
+
+      if (!cards.length) {
+        list.innerHTML = '<div class="item"><div class="muted">No cards found yet.</div></div>';
+        return;
+      }
+
+      list.innerHTML = cards.map(c => `
+        <div class="item">
+          <div class="item-head">
+            <div>
+              <div class="item-title">${escapeHtml(c.front)} → ${escapeHtml(c.back)}</div>
+              <div class="muted">${c.language} · ${c.type} · due ${c.due || todayISO()} · ${c.difficulty || 'new'}</div>
+            </div>
+            <span class="pill">${(c.tags||[]).slice(0,2).map(escapeHtml).join(' · ') || 'untagged'}</span>
+          </div>
+          ${c.sentence ? `<div class="muted" style="margin-top:8px;">Sentence: ${escapeHtml(c.sentence)}</div>` : ''}
+          ${c.mnemonic ? `<div class="muted" style="margin-top:6px;">Mnemonic: ${escapeHtml(c.mnemonic)}</div>` : ''}
+          <div class="item-actions">
+            <button class="secondary" onclick="editCard('${c.id}')">Edit</button>
+            <button class="danger" onclick="deleteCard('${c.id}')">Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderLanguageSummary() {
+      const box = document.getElementById('languageSummary');
+      const languages = ['Spanish','German','Chinese','French','Arabic','Hebrew','Swahili'];
+      box.innerHTML = languages.map(lang => {
+        const langCards = state.cards.filter(c => c.language === lang);
+        const due = langCards.filter(c => !c.due || c.due <= todayISO()).length;
+        const hard = langCards.filter(c => c.difficulty === 'hard').length;
+        const todo = {
+          Spanish: '10–15 new words · 1 grammar point · 5 spoken sentences',
+          German: '8–12 words · word order drill · 3 written sentences',
+          Chinese: '5 characters · tones · read aloud twice',
+          French: '10 words · compare with Spanish · 1 mini reading',
+          Arabic: '5–10 phrases · pronunciation drill · greeting practice',
+          Hebrew: 'alphabet + 5 words · short reading',
+          Swahili: '5 phrases · say aloud · quick review'
+        }[lang];
+        return `
+          <div class="item">
+            <div class="item-head">
+              <div>
+                <div class="item-title">${lang}</div>
+                <div class="muted">${langCards.length} cards · ${due} due · ${hard} hard</div>
+              </div>
+              <span class="pill">To-do</span>
+            </div>
+            <div class="muted" style="margin-top:8px;">${todo}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function render() {
+      renderStats();
+      renderCardList();
+      renderLanguageSummary();
+      renderReview();
+    }
+
+    function wireEvents() {
+      document.getElementById('addBtn').addEventListener('click', () => {
+        const language = document.getElementById('language').value;
+        const type = document.getElementById('type').value;
+        const front = document.getElementById('front').value.trim();
+        const back = document.getElementById('back').value.trim();
+        const mnemonic = document.getElementById('mnemonic').value.trim();
+        const sentence = document.getElementById('sentence').value.trim();
+        const notes = document.getElementById('notes').value.trim();
+        const tags = document.getElementById('tags').value.split(',').map(s => s.trim()).filter(Boolean);
+        if (!front || !back) {
+          alert('Please add both a prompt side and an answer side.');
+          return;
+        }
+        addCard({ language, type, front, back, mnemonic, sentence, notes, tags, difficulty:'new', interval:0, due:todayISO(), reviews:0 });
+        ['front','back','mnemonic','sentence','notes','tags'].forEach(id => document.getElementById(id).value = '');
+      });
+
+      document.getElementById('sampleBtn').addEventListener('click', () => {
+        if (state.cards.length && !confirm('Add starter examples anyway?')) return;
+        starterCards.forEach(card => addCard(card));
+      });
+
+      document.getElementById('startReviewBtn').addEventListener('click', () => startReview(true));
+      document.getElementById('showAnswerBtn').addEventListener('click', () => {
+        if (!currentReview) return;
+        document.getElementById('reviewBack').style.display = 'block';
+      });
+      document.getElementById('nextCardBtn').addEventListener('click', () => startReview(false));
+      document.getElementById('hardBtn').addEventListener('click', () => currentReview && markReview(currentReview.id, 'hard'));
+      document.getElementById('mediumBtn').addEventListener('click', () => currentReview && markReview(currentReview.id, 'medium'));
+      document.getElementById('easyBtn').addEventListener('click', () => currentReview && markReview(currentReview.id, 'easy'));
+      document.getElementById('speakPromptBtn').addEventListener('click', () => {
+        const prompt = document.getElementById('speakPrompt');
+        if (!currentReview) return;
+        prompt.textContent = buildSpeakPrompt(currentReview);
+        prompt.style.display = 'block';
+      });
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        if (!confirm('Reset all saved Keni Language Engine data in this browser?')) return;
+        localStorage.removeItem(STORAGE_KEY);
+        state = { cards: [] };
+        reviewQueue = [];
+        currentReview = null;
+        render();
+      });
+      document.getElementById('filterLanguage').addEventListener('change', renderCardList);
+      document.getElementById('search').addEventListener('input', renderCardList);
+    }
+
+    window.deleteCard = function(id) {
+      if (!confirm('Delete this card?')) return;
+      state.cards = state.cards.filter(c => c.id !== id);
+      saveState();
+      render();
+    }
+
+    window.editCard = function(id) {
+      const c = state.cards.find(x => x.id === id);
+      if (!c) return;
+      document.getElementById('language').value = c.language;
+      document.getElementById('type').value = c.type;
+      document.getElementById('front').value = c.front;
+      document.getElementById('back').value = c.back;
+      document.getElementById('mnemonic').value = c.mnemonic || '';
+      document.getElementById('sentence').value = c.sentence || '';
+      document.getElementById('notes').value = c.notes || '';
+      document.getElementById('tags').value = (c.tags || []).join(', ');
+      deleteCard(id);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    wireEvents();
+    render();
+  </script>
+</body>
+</html>
